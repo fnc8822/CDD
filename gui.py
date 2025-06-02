@@ -1,10 +1,11 @@
-import tkinter as tk
-from tkinter import ttk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import threading
+import sys
 import time
+import threading
 import os
+from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QRadioButton, QPushButton, QLabel, QButtonGroup
+from PySide6.QtCore import QTimer
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 
 DEVICE_PATH = "/dev/foobar_sdec"
 
@@ -49,64 +50,83 @@ class SignalReader:
     def stop(self):
         self.running = False
 
-class SignalGUI:
-    def __init__(self, root):
+class SignalGUI(QMainWindow):
+    def __init__(self):
+        super().__init__()
         self.reader = SignalReader()
 
-        self.root = root
-        self.root.title("Visualización de Señales")
+        self.setWindowTitle("Visualización de Señales")
+        self.main_widget = QWidget()
+        self.setCentralWidget(self.main_widget)
+
+        self.layout = QVBoxLayout(self.main_widget)
         self.create_widgets()
 
         self.reader.start()
-        self.update_plot()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_plot)
+        self.timer.start(100)
 
     def create_widgets(self):
-        self.signal_var = tk.IntVar(value=1)
+        # Signal selection
+        self.signal_label = QLabel("Señal:")
+        self.layout.addWidget(self.signal_label)
 
-        frame = ttk.Frame(self.root)
-        frame.pack(side=tk.TOP, fill=tk.X)
+        self.signal_group = QButtonGroup(self)
+        self.square_button = QRadioButton("Cuadrada")
+        self.square_button.setChecked(True)
+        self.signal_group.addButton(self.square_button, 1)
+        self.layout.addWidget(self.square_button)
 
-        ttk.Label(frame, text="Señal:").pack(side=tk.LEFT, padx=5)
+        self.triangular_button = QRadioButton("Triangular")
+        self.signal_group.addButton(self.triangular_button, 2)
+        self.layout.addWidget(self.triangular_button)
 
-        ttk.Radiobutton(frame, text="Cuadrada", variable=self.signal_var, value=1, command=self.change_signal).pack(side=tk.LEFT)
-        ttk.Radiobutton(frame, text="Triangular", variable=self.signal_var, value=2, command=self.change_signal).pack(side=tk.LEFT)
+        self.signal_group.buttonClicked.connect(self.change_signal)
 
-        self.toggle_button = ttk.Button(frame, text="Pausar", command=self.toggle)
-        self.toggle_button.pack(side=tk.LEFT, padx=10)
+        # Toggle button
+        self.toggle_button = QPushButton("Pausar")
+        self.toggle_button.clicked.connect(self.toggle)
+        self.layout.addWidget(self.toggle_button)
 
-        # Gráfico
+        # Matplotlib plot with custom styling
         self.fig, self.ax = plt.subplots(figsize=(6, 3))
-        self.ax.set_title("Valor de la Señal")
-        self.ax.set_xlabel("Tiempo [s]")
-        self.ax.set_ylabel("Valor")
-        self.line, = self.ax.plot([], [], lw=2)
+        self.fig.patch.set_facecolor('black')  # Set figure background to black
+        self.ax.set_facecolor('black')  # Set axes background to black
+        self.ax.set_title("Valor de la Señal", color='white')  # Title with white text
+        self.ax.set_xlabel("Tiempo [s]", color='white')  # X-axis label with white text
+        self.ax.set_ylabel("Valor", color='white')  # Y-axis label with white text
+        self.ax.tick_params(colors='white')  # Tick labels with white text
+        self.ax.grid(color='gray', linestyle='--', linewidth=0.5)  # Grid with gray dashed lines
+        self.line, = self.ax.plot([], [], lw=2, color='cyan')  # Line with vibrant cyan color
 
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.canvas = FigureCanvas(self.fig)
+        self.layout.addWidget(self.canvas)
+
 
     def change_signal(self):
-        signal = self.signal_var.get()
+        signal = self.signal_group.checkedId()
         self.reader.write_signal(signal)
 
     def toggle(self):
         if self.reader.running:
             self.reader.stop()
-            self.toggle_button.config(text="Reanudar")
+            self.toggle_button.setText("Reanudar")
         else:
             self.reader.start()
-            self.toggle_button.config(text="Pausar")
+            self.toggle_button.setText("Pausar")
 
     def update_plot(self):
         self.line.set_data(self.reader.times, self.reader.values)
         self.ax.relim()
         self.ax.autoscale_view()
         self.canvas.draw()
-        self.root.after(100, self.update_plot)
 
 def main():
-    root = tk.Tk()
-    app = SignalGUI(root)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    window = SignalGUI()
+    window.show()
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
