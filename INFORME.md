@@ -78,7 +78,7 @@ def change_signal(self):
 
 ### Capturas de Pantalla
 
-![Captura de Señales](capturas/señales.webm)
+![Captura de Señales](capturas/waveforms.webm)
 
 *Figura 2: Visualización de las señales en tiempo real en la aplicacion de usuario.*
 
