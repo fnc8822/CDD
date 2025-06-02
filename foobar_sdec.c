@@ -11,8 +11,8 @@
 #define TRIANGULAR_STEP 2
 #define SQUARE_PERIOD_MS 500
 #define TRIANGULAR_PERIOD_MS 10
-#define SAWTOOTH_PERIOD_MS 50
-#define SAWTOOTH_STEP 2
+#define SAWTOOTH_PERIOD_MS 10
+#define SAWTOOTH_STEP 1
 
 static dev_t dev_num;
 static struct cdev cdev;
@@ -52,7 +52,8 @@ static void update_signals(struct timer_list *t) {
 
     mutex_unlock(&signal_mutex);
 
-    mod_timer(&signal_timer, jiffies + msecs_to_jiffies(TRIANGULAR_PERIOD_MS));
+    unsigned long next_period = (active_signal == SAWTOOTH) ? SAWTOOTH_PERIOD_MS : TRIANGULAR_PERIOD_MS;
+    mod_timer(&signal_timer, jiffies + msecs_to_jiffies(next_period));
 }
 
 // File operations
