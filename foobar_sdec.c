@@ -11,6 +11,8 @@
 #define TRIANGULAR_STEP 2
 #define SQUARE_PERIOD_MS 500
 #define TRIANGULAR_PERIOD_MS 10
+#define SAWTOOTH_PERIOD_MS 50
+#define SAWTOOTH_STEP 2
 
 static dev_t dev_num;
 static struct cdev cdev;
@@ -19,60 +21,78 @@ static struct class *foobar_class;
 static struct timer_list signal_timer;
 static DEFINE_MUTEX(signal_mutex);
 
-enum signal_type { SQUARE = 1, TRIANGULAR = 2 };
+static unsigned long last_square_jiffies = 0;
+enum signal_type { SQUARE = 1, TRIANGULAR = 2, SAWTOOTH = 3 }; // Add SAWTOOTH
+static int sawtooth_value = 0;
+
+
 static int active_signal = SQUARE;
 static int square_state = 0;
 static int triangular_value = 0;
 static int triangular_dir = 1; // 1 = up, -1 = down
 
 static void update_signals(struct timer_list *t) {
-	mutex_lock(&signal_mutex);
+    mutex_lock(&signal_mutex);
 
-	// Update square signal (toggle every 500ms)
-	static unsigned long last_square_jiffies = 0;
-	if (time_after(jiffies, last_square_jiffies + msecs_to_jiffies(SQUARE_PERIOD_MS))) {
-		square_state = !square_state;
-		last_square_jiffies = jiffies;
-	}
+    // Update square signal
+    if (time_after(jiffies, last_square_jiffies + msecs_to_jiffies(SQUARE_PERIOD_MS))) {
+        square_state = !square_state;
+        last_square_jiffies = jiffies;
+    }
 
-	// Update triangular signal
-	triangular_value += triangular_dir * TRIANGULAR_STEP;
-	if (triangular_value >= 100 || triangular_value <= 0)
-		triangular_dir *= -1;
+    // Update triangular signal
+    triangular_value += triangular_dir * TRIANGULAR_STEP;
+    if (triangular_value >= 100 || triangular_value <= 0)
+        triangular_dir *= -1;
 
-	mutex_unlock(&signal_mutex);
+    // Update sawtooth signal
+    sawtooth_value += SAWTOOTH_STEP;
+    if (sawtooth_value >= 100)
+        sawtooth_value = 0;
 
-	mod_timer(&signal_timer, jiffies + msecs_to_jiffies(TRIANGULAR_PERIOD_MS));
+    mutex_unlock(&signal_mutex);
+
+    mod_timer(&signal_timer, jiffies + msecs_to_jiffies(TRIANGULAR_PERIOD_MS));
 }
 
 // File operations
+
 static ssize_t foobar_read(struct file *file, char __user *buf, size_t len, loff_t *offset) {
-	int value;
-	char out[16];
-	int out_len;
+    int value;
+    char out[16];
+    int out_len;
 
-	mutex_lock(&signal_mutex);
-	if (active_signal == SQUARE)
-		value = square_state;
-	else
-		value = triangular_value;
-	mutex_unlock(&signal_mutex);
+    mutex_lock(&signal_mutex);
+    if (active_signal == SQUARE)
+        value = square_state;
+    else if (active_signal == TRIANGULAR)
+        value = triangular_value;
+    else if (active_signal == SAWTOOTH) // Add sawtooth signal handling
+        value = sawtooth_value;
+    mutex_unlock(&signal_mutex);
 
-	out_len = snprintf(out, sizeof(out), "%d\n", value);
-	if (*offset > 0) return 0; // EOF
-	if (copy_to_user(buf, out, out_len)) return -EFAULT;
-	*offset = out_len;
-	return out_len;
+    out_len = snprintf(out, sizeof(out), "%d\n", value);
+    if (*offset > 0) return 0; // EOF
+    if (copy_to_user(buf, out, out_len)) return -EFAULT;
+
+    *offset += out_len;
+    return out_len;
 }
 
 static ssize_t foobar_write(struct file *file, const char __user *buf, size_t len, loff_t *offset) {
-	char input;
-	if (copy_from_user(&input, buf, 1)) return -EFAULT;
-	mutex_lock(&signal_mutex);
-	if (input == '1') active_signal = SQUARE;
-	else if (input == '2') active_signal = TRIANGULAR;
-	mutex_unlock(&signal_mutex);
-	return len;
+    char input;
+    if (copy_from_user(&input, buf, 1)) return -EFAULT;
+
+    mutex_lock(&signal_mutex);
+    if (input == '1') 
+        active_signal = SQUARE;
+    else if (input == '2') 
+        active_signal = TRIANGULAR;
+    else if (input == '3') // Add handling for sawtooth signal
+        active_signal = SAWTOOTH;
+    mutex_unlock(&signal_mutex);
+
+    return len;
 }
 
 static int foobar_open(struct inode *inode, struct file *file) {

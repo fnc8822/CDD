@@ -82,6 +82,11 @@ class SignalGUI(QMainWindow):
         self.signal_group.addButton(self.triangular_button, 2)
         self.layout.addWidget(self.triangular_button)
 
+        # Add sawtooth signal button
+        self.sawtooth_button = QRadioButton("Diente de Sierra")
+        self.signal_group.addButton(self.sawtooth_button, 3)
+        self.layout.addWidget(self.sawtooth_button)
+
         self.signal_group.buttonClicked.connect(self.change_signal)
 
         # Toggle button
@@ -89,20 +94,15 @@ class SignalGUI(QMainWindow):
         self.toggle_button.clicked.connect(self.toggle)
         self.layout.addWidget(self.toggle_button)
 
-        # Matplotlib plot with custom styling
+        # Matplotlib plot
         self.fig, self.ax = plt.subplots(figsize=(6, 3))
-        self.fig.patch.set_facecolor('black')  # Set figure background to black
-        self.ax.set_facecolor('black')  # Set axes background to black
-        self.ax.set_title("Valor de la Señal", color='white')  # Title with white text
-        self.ax.set_xlabel("Tiempo [s]", color='white')  # X-axis label with white text
-        self.ax.set_ylabel("Valor", color='white')  # Y-axis label with white text
-        self.ax.tick_params(colors='white')  # Tick labels with white text
-        self.ax.grid(color='gray', linestyle='--', linewidth=0.5)  # Grid with gray dashed lines
-        self.line, = self.ax.plot([], [], lw=2, color='cyan')  # Line with vibrant cyan color
+        self.ax.set_title("Valor de la Señal")
+        self.ax.set_xlabel("Tiempo [s]")
+        self.ax.set_ylabel("Valor")
+        self.line, = self.ax.plot([], [], lw=2)
 
         self.canvas = FigureCanvas(self.fig)
         self.layout.addWidget(self.canvas)
-
 
     def change_signal(self):
         signal = self.signal_group.checkedId()
