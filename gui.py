@@ -2,7 +2,12 @@ import sys
 import time
 import threading
 import os
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QRadioButton, QPushButton, QLabel, QButtonGroup
+
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow, QVBoxLayout, QWidget,
+    QRadioButton, QPushButton, QLabel, QButtonGroup,
+    QHBoxLayout, QDoubleSpinBox
+)
 from PySide6.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -82,7 +87,6 @@ class SignalGUI(QMainWindow):
         self.signal_group.addButton(self.triangular_button, 2)
         self.layout.addWidget(self.triangular_button)
 
-        # Add sawtooth signal button
         self.sawtooth_button = QRadioButton("Diente de Sierra")
         self.signal_group.addButton(self.sawtooth_button, 3)
         self.layout.addWidget(self.sawtooth_button)
@@ -94,6 +98,34 @@ class SignalGUI(QMainWindow):
         self.toggle_button.clicked.connect(self.toggle)
         self.layout.addWidget(self.toggle_button)
 
+        # Escala X (tiempo)
+        self.x_scale_label = QLabel("Escala X (s):")
+        self.x_scale_spin = QDoubleSpinBox()
+        self.x_scale_spin.setValue(10.0)
+        self.x_scale_spin.setRange(1.0, 60.0)
+        self.x_scale_spin.setSingleStep(1.0)
+
+        # Escala Y (valor)
+        self.y_scale_label = QLabel("Escala Y (valor):")
+        self.y_scale_spin = QDoubleSpinBox()
+        self.y_scale_spin.setValue(100.0)
+        self.y_scale_spin.setRange(1.0, 500.0)
+        self.y_scale_spin.setSingleStep(10.0)
+
+        # Layout horizontal para escalas
+        scale_layout = QHBoxLayout()
+        scale_layout.addWidget(self.x_scale_label)
+        scale_layout.addWidget(self.x_scale_spin)
+        scale_layout.addWidget(self.y_scale_label)
+        scale_layout.addWidget(self.y_scale_spin)
+
+        self.layout.addLayout(scale_layout)
+
+        # Botón reset de escala
+        self.reset_button = QPushButton("Reset Escala")
+        self.reset_button.clicked.connect(self.reset_scales)
+        self.layout.addWidget(self.reset_button)
+
         # Matplotlib plot
         self.fig, self.ax = plt.subplots(figsize=(6, 3))
         self.ax.set_title("Valor de la Señal")
@@ -103,6 +135,10 @@ class SignalGUI(QMainWindow):
 
         self.canvas = FigureCanvas(self.fig)
         self.layout.addWidget(self.canvas)
+
+    def reset_scales(self):
+        self.x_scale_spin.setValue(10.0)
+        self.y_scale_spin.setValue(100.0)
 
     def change_signal(self):
         signal = self.signal_group.checkedId()
@@ -118,8 +154,20 @@ class SignalGUI(QMainWindow):
 
     def update_plot(self):
         self.line.set_data(self.reader.times, self.reader.values)
-        self.ax.relim()
-        self.ax.autoscale_view()
+
+        # Aplicar escalas personalizadas
+        x_range = self.x_scale_spin.value()
+        y_range = self.y_scale_spin.value()
+
+        if self.reader.times:
+            xmax = self.reader.times[-1]
+            xmin = max(0, xmax - x_range)
+            self.ax.set_xlim(xmin, xmax)
+        else:
+            self.ax.set_xlim(0, x_range)
+
+        self.ax.set_ylim(0, y_range)
+
         self.canvas.draw()
 
 def main():
