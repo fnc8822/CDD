@@ -18,6 +18,7 @@ Este informe detalla el desarrollo de un **Driver de Caracteres** (CDD) y una ap
 ## Diagrama de Bloques del Proyecto
 
 [Insertar Imagen]
+
 Se genera el siguiente diagrama de bloques, como una primera aproximación a la resolución del problema, en el mismo se detallan las componentes principales de la implementación.
 
 A continuacion se detallan cada uno de los módulos presentes en el diagrama.
@@ -70,13 +71,14 @@ Se adjunta a continuación la captura de pantalla de la consola de Linux, donde 
 
 ## Desarrollo de la aplicacion de usuario
 
-En segundo lugar, encontramos la aplicación encargada de la interfaz gráfica de usuario que se conecta con el CDD (driver de caracteres). 
+En segundo lugar, encontramos la aplicación encargada de la interfaz gráfica de usuario que se conecta con el CDD (driver de caracteres). La misma nos permite visualizar el funcionamiento del driver a tiempo real.
 
 ### Funcionalidad de la aplicacion
 La aplicación (`gui.py`) permite:
 - Seleccionar la señal a sensar mediante botones de radio.
 - Graficar la señal seleccionada en tiempo real utilizando Matplotlib.
 - Resetear el gráfico.
+- Ajustar la escala de magnitud en los ejes de ordenadas y absisas.
 
 
 #### **Código Relevante**
@@ -98,6 +100,19 @@ def change_signal(self):
 
 ### Conclusiones
 
+El desarrollo del Driver de Caracteres y su correspondiente aplicación de usuario cumplió con todos los objetivos propuestos al inicio del proyecto:
 
+   - Implementación del Driver de Caracteres:
+
+   Se diseñó exitosamente un driver de tipo carácter que simula tres señales distintas (cuadrada, triangular y diente de sierra) dentro del espacio del kernel.
+
+   - Aplicación de Usuario:
+
+   Se desarrolló una interfaz gráfica utilizando PySide6, que permite al usuario seleccionar qué señal visualizar, mostrando en tiempo real su comportamiento mediante gráficos con Matplotlib.
+
+   La aplicación también permite ajustar escalas y reiniciar la visualización, facilitando la interpretación de las señales.
+
+   
+   En conclusión, el trabajo logró satisfacer los objetivos técnicos y funcionales propuestos, consolidando conocimientos sobre desarrollo de drivers en Linux, comunicación con aplicaciones de usuario y visualización en tiempo real. La experiencia adquirida resulta de gran valor para proyectos futuros relacionados con sistemas embebidos y sensado de señales.
 
 
