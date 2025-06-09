@@ -15,7 +15,16 @@ Este informe detalla el desarrollo de un **Driver de Caracteres** (CDD) y una ap
 
 ---
 
+## Diagrama de Bloques del Proyecto
+
+[Insertar Imagen]
+Se genera el siguiente diagrama de bloques, como una primera aproximación a la resolución del problema, en el mismo se detallan las componentes principales de la implementación.
+
+A continuacion se detallan cada uno de los módulos presentes en el diagrama.
+
 ## Desarrollo del Driver de Caracteres
+
+En primer lugar tenemos el driver encargado de la generación de las señales. Este módulo de kernel simula tres tipos de señales generadas por software en el espacio del kernel. El mismo implementa el manejo de dispositivos de caracteres, temporizadores y sincronización mediante mutex.
 
 ### Funcionalidad del Driver
 El driver (`foobar_sdec.c`) implementa las siguientes señales:
@@ -52,18 +61,22 @@ static void update_signals(struct timer_list *t) {
 
 ### Capturas de Pantalla
 
+Se adjunta a continuación la captura de pantalla de la consola de Linux, donde se muestra la carga y descarga del módulo anteriormente descrito.
+
 ![Captura de la Aplicación](capturas/carga.png)
 
 *Figura 1: Carga y descarga del modulo.*
 
+
 ## Desarrollo de la aplicacion de usuario
+
+En segundo lugar, encontramos la aplicación encargada de la interfaz gráfica de usuario que se conecta con el CDD (driver de caracteres). 
 
 ### Funcionalidad de la aplicacion
 La aplicación (`gui.py`) permite:
 - Seleccionar la señal a sensar mediante botones de radio.
 - Graficar la señal seleccionada en tiempo real utilizando Matplotlib.
 - Resetear el gráfico.
-
 
 
 #### **Código Relevante**
@@ -81,4 +94,10 @@ def change_signal(self):
 ![Captura de Señales](capturas/waveforms.webm)
 
 *Figura 2: Visualización de las señales en tiempo real en la aplicacion de usuario.*
+
+
+### Conclusiones
+
+
+
 
