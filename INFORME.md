@@ -107,6 +107,17 @@ def change_signal(self):
 
 *Figura 2: Visualización de las señales en tiempo real en la aplicación de usuario.*
 
+Dado el tamaño del video, su visualización requiere la descarga previa. Por este motivo, se incluyen capturas del mismo con el objetivo de facilitar la corrección. Cabe aclarar que en el video se puede observar el cambio de señal en tiempo real, lo cual no es apreciable en las capturas.
+
+![Captura de señal cuadrada](capturas/cuadrada.jpg)  
+*Figura 3: Visualización de la señal cuadrada en la interfaz gráfica.*
+
+![Captura de señal triangular](capturas/triangular.jpg)  
+*Figura 4: Visualización de la señal triangular en la interfaz gráfica.*
+
+![Captura de señal diente de sierra](capturas/dientesierra.jpg)  
+*Figura 5: Visualización de la señal diente de sierra en la interfaz gráfica.*
+
 ## Pruebas Realizadas
 
 Se realizaron pruebas de carga y descarga del módulo en Linux utilizando los comandos `insmod` y `rmmod`, verificando la correcta creación del dispositivo en `/dev`. Además, se probó la aplicación gráfica seleccionando cada tipo de señal y observando la actualización en tiempo real del gráfico.
