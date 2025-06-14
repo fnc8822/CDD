@@ -1,5 +1,12 @@
 # Informe del Proyecto: Driver de Caracteres y Aplicación de Usuario
 
+## Grupo Foobar
+
+- Juan Pablo Sanchez Busso
+- Leonardo Ariel Sánchez
+- Godoy Emiliano
+- Cirrincione, Franco
+
 ## Introducción
 Este informe detalla el desarrollo de un **Driver de Caracteres** (CDD) y una aplicación de usuario para sensar y graficar señales externas. El proyecto cumple con los requisitos establecidos en el trabajo práctico (TP), incluyendo la implementación de un driver que administra señales externas y una aplicación que permite la selección y visualización de dichas señales.
 
@@ -8,7 +15,7 @@ Este informe detalla el desarrollo de un **Driver de Caracteres** (CDD) y una ap
 ## Objetivos del Proyecto
 1. Diseñar y construir un **Driver de Caracteres** que permita sensar dos señales externas con un período de **un segundo**.
 2. Implementar una aplicación de usuario que:
-   - Lea **una** de las señales sensadas.
+   - Lea una de las señales sensadas.
    - Grafique la señal en función del tiempo.
    - Permita seleccionar cuál señal leer.
    - Realice correcciones de escala de las mediciones, si es necesario.
@@ -17,21 +24,27 @@ Este informe detalla el desarrollo de un **Driver de Caracteres** (CDD) y una ap
 
 ## Diagrama de Bloques del Proyecto
 
-[Insertar Imagen]
+```mermaid
+graph TD
+    A[SenialesExternas] --> B[DriverCaracteres]
+    B --> C[AppUsuario]
+    C --> D[GraficaTiempoReal]
+    C -->|Seleccion| B
+```
 
-Se genera el siguiente diagrama de bloques, como una primera aproximación a la resolución del problema, en el mismo se detallan las componentes principales de la implementación.
+Se genera el siguiente diagrama de bloques, como una primera aproximación a la resolución del problema. En el mismo se detallan los componentes principales de la implementación.
 
-A continuacion se detallan cada uno de los módulos presentes en el diagrama.
+A continuación se detallan cada uno de los módulos presentes en el diagrama.
 
 ## Desarrollo del Driver de Caracteres
 
-En primer lugar tenemos el driver encargado de la generación de las señales. Este módulo de kernel simula tres tipos de señales generadas por software en el espacio del kernel. El mismo implementa el manejo de dispositivos de caracteres, temporizadores y sincronización mediante mutex.
+En primer lugar, tenemos el driver encargado de la generación de las señales. Este módulo de kernel simula tres tipos de señales generadas por software en el espacio del kernel. El mismo implementa el manejo de dispositivos de caracteres, temporizadores y sincronización mediante mutex.
 
 ### Funcionalidad del Driver
 El driver (`foobar_sdec.c`) implementa las siguientes señales:
-- **Señal Cuadrada:** Alterna entre 0 y 1 con un período configurable.
-- **Señal Triangular:** Incrementa o decrementa su valor entre 0 y 100, alternando dirección al alcanzar los límites.
-- **Señal Diente de Sierra:** Incrementa su valor de 0 a 100 y se reinicia al alcanzar el límite.
+- **Señal cuadrada:** Alterna entre 0 y 1 con un período configurable.
+- **Señal triangular:** Incrementa o decrementa su valor entre 0 y 100, alternando dirección al alcanzar los límites.
+- **Señal diente de sierra:** Incrementa su valor de 0 a 100 y se reinicia al alcanzar el límite.
 
 #### **Código Relevante**
 El driver utiliza un temporizador (`timer_list`) para actualizar las señales periódicamente. A continuación, se muestra un fragmento del código que actualiza las señales:
@@ -66,53 +79,60 @@ Se adjunta a continuación la captura de pantalla de la consola de Linux, donde 
 
 ![Captura de la Aplicación](capturas/carga.png)
 
-*Figura 1: Carga y descarga del modulo.*
+*Figura 1: Carga y descarga del módulo.*
 
+## Desarrollo de la Aplicación de Usuario
 
-## Desarrollo de la aplicacion de usuario
+En segundo lugar, encontramos la aplicación encargada de la interfaz gráfica de usuario que se conecta con el CDD (driver de caracteres). La misma nos permite visualizar el funcionamiento del driver en tiempo real.
 
-En segundo lugar, encontramos la aplicación encargada de la interfaz gráfica de usuario que se conecta con el CDD (driver de caracteres). La misma nos permite visualizar el funcionamiento del driver a tiempo real.
-
-### Funcionalidad de la aplicacion
+### Funcionalidad de la Aplicación
 La aplicación (`gui.py`) permite:
 - Seleccionar la señal a sensar mediante botones de radio.
 - Graficar la señal seleccionada en tiempo real utilizando Matplotlib.
 - Resetear el gráfico.
-- Ajustar la escala de magnitud en los ejes de ordenadas y absisas.
-
+- Ajustar la escala de magnitud en los ejes de ordenadas y abscisas.
 
 #### **Código Relevante**
 La aplicación utiliza PySide6 para la interfaz gráfica y Matplotlib para la visualización de las señales. A continuación, se muestra un fragmento del código que implementa la selección de señales:
 
-```c
+```python
 def change_signal(self):
     signal = self.signal_group.checkedId()
     self.reader.write_signal(signal)
 ```
 
-
 ### Capturas de Pantalla
 
 ![Captura de Señales](capturas/waveforms.webm)
 
-*Figura 2: Visualización de las señales en tiempo real en la aplicacion de usuario.*
+*Figura 2: Visualización de las señales en tiempo real en la aplicación de usuario.*
 
+## Pruebas Realizadas
+
+Se realizaron pruebas de carga y descarga del módulo en Linux utilizando los comandos `insmod` y `rmmod`, verificando la correcta creación del dispositivo en `/dev`. Además, se probó la aplicación gráfica seleccionando cada tipo de señal y observando la actualización en tiempo real del gráfico.
+
+## Posibles Mejoras y Trabajos Futuros
+
+- Agregar soporte para más tipos de señales.
+- Permitir la configuración dinámica de los parámetros de las señales desde la aplicación de usuario.
+- Mejorar la interfaz gráfica con más opciones de visualización.
+- Implementar soporte multiplataforma.
 
 ### Conclusiones
 
 El desarrollo del Driver de Caracteres y su correspondiente aplicación de usuario cumplió con todos los objetivos propuestos al inicio del proyecto:
 
-   - Implementación del Driver de Caracteres:
+- **Implementación del Driver de Caracteres:**  
+  Se diseñó exitosamente un driver de tipo carácter que simula tres señales distintas (cuadrada, triangular y diente de sierra) dentro del espacio del kernel.
 
-   Se diseñó exitosamente un driver de tipo carácter que simula tres señales distintas (cuadrada, triangular y diente de sierra) dentro del espacio del kernel.
+- **Aplicación de Usuario:**  
+  Se desarrolló una interfaz gráfica utilizando PySide6, que permite al usuario seleccionar qué señal visualizar, mostrando en tiempo real su comportamiento mediante gráficos con Matplotlib.  
+  La aplicación también permite ajustar escalas y reiniciar la visualización, facilitando la interpretación de las señales.
 
-   - Aplicación de Usuario:
+En conclusión, el trabajo logró satisfacer los objetivos técnicos y funcionales propuestos, consolidando conocimientos sobre desarrollo de drivers en Linux, comunicación con aplicaciones de usuario y visualización en tiempo real. La experiencia adquirida resulta de gran valor para proyectos futuros relacionados con sistemas embebidos y sensado de señales.
 
-   Se desarrolló una interfaz gráfica utilizando PySide6, que permite al usuario seleccionar qué señal visualizar, mostrando en tiempo real su comportamiento mediante gráficos con Matplotlib.
+## Referencias
 
-   La aplicación también permite ajustar escalas y reiniciar la visualización, facilitando la interpretación de las señales.
-
-   
-   En conclusión, el trabajo logró satisfacer los objetivos técnicos y funcionales propuestos, consolidando conocimientos sobre desarrollo de drivers en Linux, comunicación con aplicaciones de usuario y visualización en tiempo real. La experiencia adquirida resulta de gran valor para proyectos futuros relacionados con sistemas embebidos y sensado de señales.
-
-
+- Documentación oficial de Linux Device Drivers.
+- Tutoriales de PySide6 y Matplotlib.
+- Apuntes de la cátedra.
